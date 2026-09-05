@@ -1,0 +1,16 @@
+# Exportaciones originales y datos personales
+datos garmin/
+*.csv
+*.xlsx
+*.xls
+*.zip
+*.fit
+*.gpx
+*.tcx
+
+# Archivos temporales de Python y del sistema
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+

@@ -87,3 +87,45 @@ El gráfico de zonas de frecuencia cardiaca media se integra en el informe inmed
 ### Corrección del efecto aeróbico
 
 El gráfico aparecía vacío porque la cabecera `TE aeróbico` estaba mal codificada en el CSV. Se adapta el importador para reconocer la variante exportada por Garmin. Se validan 1.195 valores de 1.220 actividades, con rango de 0,0 a 5,0.
+
+## Recapitulación de la sesión — 5 de septiembre de 2026
+
+### Estado actual
+
+- Web publicada mediante GitHub Pages desde `index.html`.
+- Repositorio: `https://github.com/aitorayerdi-git/entrenamientos-garmin`.
+- Informe inmediato con 1.220 actividades reales entre mayo de 2019 y septiembre de 2026.
+- Informe detallado con datos ficticios hasta recibir Garmin Data Management.
+- Los archivos originales CSV, XLSX, ZIP, FIT, GPX y TCX están excluidos de GitHub.
+
+### Funciones implementadas
+
+- Comparación mensual de enero a diciembre con una línea por año.
+- Control común para ocultar o mostrar años, manteniendo colores estables.
+- Volumen por horas, distancia, sesiones y desnivel.
+- Velocidad, frecuencia cardiaca media, eficiencia velocidad/pulso y efecto aeróbico.
+- Zonas estimadas según la frecuencia cardiaca media, usando provisionalmente 206 ppm como FC máxima.
+- Valores al pasar el cursor, tabla mensual y fecha de actualización.
+- Procedimientos separados para el informe inmediato y el detallado.
+
+### Actualización
+
+- Guardar nuevos CSV en `datos garmin/inmediato`.
+- Ejecutar `ACTUALIZAR_INFORMES.cmd` para regenerar el informe inmediato.
+- Guardar el futuro ZIP de Garmin Data Management en `datos garmin/completo`, sin modificar ni descomprimir.
+- Después de una actualización local, publicar los HTML regenerados en GitHub.
+
+### Correcciones relevantes
+
+- Tratamiento de filas CSV encapsuladas en una sola celda.
+- Normalización de decimales, millares y cabeceras problemáticas.
+- Corrección de `TE aeróbico`: 1.195 valores recuperados, entre 0,0 y 5,0.
+- Integración del gráfico de zonas antes de la tabla mensual.
+
+### Próximos pasos
+
+1. Revisar la presentación en móvil y ordenador.
+2. Analizar el ZIP de Garmin Data Management cuando esté disponible.
+3. Sustituir los datos ficticios por VO2, HRV, sueño, pulso en reposo, carga y zonas reales.
+4. Crear el actualizador del informe detallado.
+5. Valorar la publicación automática en GitHub tras cada actualización.

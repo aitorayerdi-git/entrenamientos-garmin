@@ -71,3 +71,7 @@ Se crea la sección web `actualizar-informes.html` con procedimientos separados 
 ### Preparación para GitHub Pages
 
 Se decide publicar los informes para compartirlos. Se inicializa un repositorio Git local y se añaden reglas que excluyen `datos garmin` y todos los archivos CSV, XLSX, ZIP, FIT, GPX y TCX. Los HTML agregados sí se publicarán. Se crea `README.md` y se prepara GitHub Pages para servir desde la rama `main`.
+
+### Primera publicación en GitHub
+
+El proyecto se publica en el repositorio público `https://github.com/aitorayerdi-git/entrenamientos-garmin`. La rama principal es `main` y los archivos fuente originales de Garmin permanecen excluidos mediante `.gitignore`. Queda pendiente activar GitHub Pages desde la configuración del repositorio.

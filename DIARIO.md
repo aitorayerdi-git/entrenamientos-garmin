@@ -75,3 +75,7 @@ Se decide publicar los informes para compartirlos. Se inicializa un repositorio 
 ### Primera publicación en GitHub
 
 El proyecto se publica en el repositorio público `https://github.com/aitorayerdi-git/entrenamientos-garmin`. La rama principal es `main` y los archivos fuente originales de Garmin permanecen excluidos mediante `.gitignore`. Queda pendiente activar GitHub Pages desde la configuración del repositorio.
+
+### Interacción por años y detalle mensual
+
+El informe inmediato se amplía para mostrar simultáneamente velocidad media, frecuencia cardiaca media, eficiencia velocidad/pulso y efecto aeróbico, eliminando el selector de rendimiento. La leyenda permite activar o desactivar años mediante un clic y conserva un color estable para cada año. Los puntos muestran mes y valor al pasar el cursor, y se añade una tabla con el detalle mensual exacto.

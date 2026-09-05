@@ -1,0 +1,57 @@
+from __future__ import annotations
+import csv,json,re
+from datetime import datetime
+from pathlib import Path
+
+ROOT=Path(__file__).parent
+SOURCE=max((ROOT/'datos garmin').rglob('*.csv'),key=lambda p:p.stat().st_mtime)
+OUTPUT=ROOT/'muestra-graficos.html'
+def clean(v): return (v or '').replace('\xad','')
+def num(v):
+ try:return float(clean(v).replace('.','').replace(',','.')) if v not in ('','--') else None
+ except:return None
+def secs(v):
+ try:
+  a=[float(x) for x in clean(v).replace(',','.').split(':')];return sum(x*60**i for i,x in enumerate(reversed(a)))
+ except:return None
+def family(v):
+ v=clean(v).lower()
+ if any(x in v for x in ('trail','carrera','cinta')):return 'Carrera total'
+ if 'cicl' in v:return 'Ciclismo'
+ if 'nataci' in v:return 'Natación'
+ if 'fuerza' in v:return 'Fuerza'
+ return 'Otros'
+outer=list(csv.reader(open(SOURCE,encoding='utf-8-sig',newline='')))
+head=outer[0] if len(outer[0])>1 else next(csv.reader([outer[0][0]]))
+rows=[next(csv.reader([r[0]])) if len(r)==1 else r for r in outer[1:] if r]
+idx={}
+for i,n in enumerate(head):idx.setdefault(clean(n),i)
+def get(r,n):return clean(r[idx[n]]) if n in idx and idx[n]<len(r) else ''
+data=[]
+for r in rows:
+ try:d=datetime.fromisoformat(get(r,'Fecha'))
+ except:continue
+ duration=secs(get(r,'Tiempo en movimiento')) or secs(get(r,'Tiempo'));dist=num(get(r,'Distancia'));hr=num(get(r,'Frecuencia cardiaca media'))
+ speed=dist/(duration/3600) if dist and duration else None
+ data.append({'y':d.year,'m':d.month,'type':get(r,'Tipo de actividad'),'family':family(get(r,'Tipo de actividad')),'hours':duration/3600 if duration else 0,'distance':dist or 0,'ascent':num(get(r,'Ascenso total')) or 0,'hr':hr,'speed':speed,'te':num(get(r,'TE aeróbico'))})
+stamp=datetime.fromtimestamp(SOURCE.stat().st_mtime).strftime('%d/%m/%Y %H:%M')
+payload=json.dumps(data,ensure_ascii=False,separators=(',',':'))
+html=r'''<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe inmediato Garmin</title><style>
+:root{--bg:#f3f7f5;--card:#fff;--ink:#15231d;--muted:#687871;--green:#087f5b;--line:#dce7e2}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Segoe UI",sans-serif}main{width:min(1260px,calc(100% - 28px));margin:28px auto 60px}header{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:20px}h1{font-size:clamp(2.2rem,5vw,3.8rem);line-height:1;margin:.2rem 0}.eyebrow,a{color:var(--green)}.muted{color:var(--muted)}.controls,.card{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 25px #173c2c0b}.controls{padding:15px 18px;margin-bottom:15px;display:flex;gap:18px;flex-wrap:wrap;align-items:end}.control{display:grid;gap:5px}.control label{font-size:.76rem;font-weight:800;text-transform:uppercase;color:var(--muted)}select{padding:8px 12px;border:1px solid #cad8d1;border-radius:8px;background:white}.yearbar{display:flex;flex-wrap:wrap;gap:7px;padding:13px 18px;background:white;border:1px solid var(--line);border-radius:14px;margin-bottom:18px}.year{border:1px solid var(--line);background:white;border-radius:99px;padding:5px 10px;cursor:pointer;font-weight:750}.year.off{opacity:.28;text-decoration:line-through}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{padding:19px;min-width:0}.wide{grid-column:1/-1}.card h2{margin:0;font-size:1.18rem}svg{width:100%;height:315px;display:block}.gridline{stroke:#e7eeeb}.txt{fill:#718078;font-size:11px}.tip{position:fixed;display:none;pointer-events:none;background:#14231d;color:white;padding:8px 10px;border-radius:8px;font-size:12px;z-index:5}.tablewrap{max-height:480px;overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}th{position:sticky;top:0;background:white;color:var(--muted);font-size:.75rem;text-transform:uppercase}.note{font-size:.82rem;color:var(--muted)}@media(max-width:800px){header{display:block}.grid{grid-template-columns:1fr}.wide{grid-column:auto}svg{height:300px}}</style></head><body><main>
+<header><div><div class="eyebrow">Garmin · informe inmediato</div><h1>Evolución anual</h1><div class="muted">Datos actualizados: __STAMP__ · 1.220 actividades</div></div><div><a href="actualizar-informes.html">Actualizar informes</a> · <a href="index.html">Inicio</a></div></header>
+<section class="controls"><div class="control"><label>Actividad</label><select id="sport"><option>Carrera total</option><option>Trail running</option><option>Ciclismo</option><option>Natación</option><option>Fuerza</option><option>Todos</option></select></div><div class="control"><label>Nivel de entrenamiento</label><select id="load"><option value="hours">Horas mensuales</option><option value="distance">Distancia mensual</option><option value="sessions">Sesiones mensuales</option><option value="ascent">Desnivel mensual</option></select></div></section>
+<div class="yearbar"><strong>Años visibles:</strong><span id="yearButtons"></span></div>
+<div class="grid"><section class="card wide"><h2 id="loadTitle">Nivel de entrenamiento</h2><p class="muted">Volumen mensual · enero a diciembre</p><svg id="loadChart"></svg></section><section class="card"><h2>Velocidad media</h2><p class="muted">Media ponderada por duración · km/h</p><svg id="speedChart"></svg></section><section class="card"><h2>Frecuencia cardiaca media</h2><p class="muted">Media mensual ponderada · ppm</p><svg id="hrChart"></svg></section><section class="card"><h2>Eficiencia velocidad / pulso</h2><p class="muted">Comparar solo deportes y terrenos semejantes</p><svg id="effChart"></svg></section><section class="card"><h2>Efecto aeróbico medio</h2><p class="muted">Promedio de las sesiones del mes</p><svg id="teChart"></svg></section><section class="card wide"><h2>Detalle mensual</h2><p class="muted">Valores exactos de los años visibles. Pulsa años arriba para ocultarlos.</p><div class="tablewrap"><table><thead><tr><th>Periodo</th><th>Sesiones</th><th>Horas</th><th>Distancia</th><th>Desnivel</th><th>Velocidad</th><th>FC media</th><th>Eficiencia</th><th>TE aeróbico</th></tr></thead><tbody id="monthly"></tbody></table></div></section></div>
+<p class="note">Pasa el cursor sobre cualquier punto para ver su mes y valor exacto. Los meses sin datos se dejan sin línea.</p></main><div class="tip" id="tip"></div><script>
+const DATA=__DATA__,M=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],C=['#087f5b','#d9485f','#3468c0','#e28413','#744fc6','#008da8','#8c6d31','#444'];let hidden=new Set();const $=s=>document.querySelector(s);
+function filtered(){let s=$('#sport').value;if(s==='Todos')return DATA;if(s==='Trail running')return DATA.filter(x=>x.type==='Trail running');return DATA.filter(x=>x.family===s)}
+function aggregate(){let d=filtered(),ys=[...new Set(d.map(x=>x.y))].sort(),map={};ys.forEach(y=>map[y]=Array.from({length:12},()=>({sessions:0,hours:0,distance:0,ascent:0,sw:0,hw:0,teSum:0,teN:0})));d.forEach(x=>{let a=map[x.y][x.m-1];a.sessions++;a.hours+=x.hours;a.distance+=x.distance;a.ascent+=x.ascent;if(x.speed&&x.hr){a.sw+=x.speed*x.hours;a.hw+=x.hr*x.hours}if(x.te){a.teSum+=x.te;a.teN++}});Object.values(map).flat().forEach(a=>{a.speed=a.hours?a.sw/a.hours:null;a.hr=a.hours?a.hw/a.hours:null;a.efficiency=a.speed&&a.hr?a.speed/a.hr:null;a.te=a.teN?a.teSum/a.teN:null});return{ys,map}}
+function fmt(v,k){if(v==null||!isFinite(v))return'—';if(k==='hours')return v.toFixed(1)+' h';if(k==='distance')return v.toFixed(1)+' km';if(k==='ascent')return Math.round(v).toLocaleString('es-ES')+' m';if(k==='speed')return v.toFixed(1)+' km/h';if(k==='hr')return Math.round(v)+' ppm';if(k==='efficiency')return v.toFixed(3);if(k==='te')return v.toFixed(1);return Math.round(v).toString()}
+function draw(id,key,ys,map){let allYears=ys;ys=ys.filter(y=>!hidden.has(y));let svg=$(id),W=900,H=295,p={l:50,r:14,t:12,b:34},vals=ys.flatMap(y=>map[y].map(a=>a[key])).filter(v=>v!=null&&isFinite(v)),hi=Math.max(...vals,1),lo=key==='hr'?Math.min(...vals)*.93:0,x=i=>p.l+i*(W-p.l-p.r)/11,y=v=>H-p.b-(v-lo)/(hi-lo||1)*(H-p.t-p.b),s='';for(let i=0;i<5;i++){let v=hi-i*(hi-lo)/4,yy=y(v);s+=`<line class="gridline" x1="${p.l}" y1="${yy}" x2="${W-p.r}" y2="${yy}"/><text class="txt" x="${p.l-7}" y="${yy+4}" text-anchor="end">${fmt(v,key).replace(/ .*/,'')}</text>`}M.forEach((m,i)=>s+=`<text class="txt" x="${x(i)}" y="${H-9}" text-anchor="middle">${m}</text>`);ys.forEach((yr,j)=>{let color=C[allYears.indexOf(yr)%C.length],segments=[],part=[];map[yr].forEach((a,i)=>{let v=a[key];if(v==null||!a.sessions){if(part.length)segments.push(part);part=[]}else part.push([x(i),y(v),i,v])});if(part.length)segments.push(part);segments.forEach(q=>s+=`<polyline fill="none" stroke="${color}" stroke-width="2.5" points="${q.map(z=>z[0]+','+z[1]).join(' ')}"/>`);segments.flat().forEach(q=>s+=`<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="${color}" data-tip="${M[q[2]]} ${yr}: ${fmt(q[3],key)}"/>`)});svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML=s}
+function render(){let{ys,map}=aggregate();$('#yearButtons').innerHTML=ys.map((y,j)=>`<button class="year ${hidden.has(y)?'off':''}" data-year="${y}"><i class="dot" style="background:${C[j%C.length]}"></i>${y}</button>`).join(' ');let lk=$('#load').value;$('#loadTitle').textContent=$('#load').selectedOptions[0].text;draw('#loadChart',lk,ys,map);draw('#speedChart','speed',ys,map);draw('#hrChart','hr',ys,map);draw('#effChart','efficiency',ys,map);draw('#teChart','te',ys,map);$('#monthly').innerHTML=ys.filter(y=>!hidden.has(y)).reverse().flatMap(y=>map[y].map((a,i)=>({y,i,a})).filter(x=>x.a.sessions).reverse()).map(x=>`<tr><td>${M[x.i]} ${x.y}</td><td>${x.a.sessions}</td><td>${fmt(x.a.hours,'hours')}</td><td>${fmt(x.a.distance,'distance')}</td><td>${fmt(x.a.ascent,'ascent')}</td><td>${fmt(x.a.speed,'speed')}</td><td>${fmt(x.a.hr,'hr')}</td><td>${fmt(x.a.efficiency,'efficiency')}</td><td>${fmt(x.a.te,'te')}</td></tr>`).join('')}
+document.addEventListener('click',e=>{let b=e.target.closest('[data-year]');if(b){let y=+b.dataset.year;hidden.has(y)?hidden.delete(y):hidden.add(y);render()}});document.querySelectorAll('select').forEach(x=>x.onchange=()=>{hidden.clear();render()});document.addEventListener('mouseover',e=>{if(e.target.dataset.tip){let t=$('#tip');t.textContent=e.target.dataset.tip;t.style.display='block'}});document.addEventListener('mousemove',e=>{let t=$('#tip');t.style.left=e.clientX+12+'px';t.style.top=e.clientY+12+'px'});document.addEventListener('mouseout',e=>{if(e.target.dataset.tip)$('#tip').style.display='none'});render();</script></body></html>'''
+OUTPUT.write_text(html.replace('__DATA__',payload).replace('__STAMP__',stamp),encoding='utf-8')
+portal=ROOT/'informe-inmediato.html'
+if portal.exists():
+ s=portal.read_text(encoding='utf-8');s=re.sub(r'<!--DATA_DATE-->.*?<!--/DATA_DATE-->',f'<!--DATA_DATE-->Datos actualizados: {stamp}<!--/DATA_DATE-->',s);portal.write_text(s,encoding='utf-8')
+print(f'Generado informe inmediato v2: {len(data)} actividades')

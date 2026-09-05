@@ -1,7 +1,7 @@
 @echo off
 cd /d "%~dp0"
 echo Actualizando informes con el CSV mas reciente...
-python generar_muestra.py
+python generar_inmediato_v2.py
 if errorlevel 1 goto error
 python generar_zonas.py
 if errorlevel 1 goto error

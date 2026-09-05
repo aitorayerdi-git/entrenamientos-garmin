@@ -79,3 +79,7 @@ El proyecto se publica en el repositorio público `https://github.com/aitorayerd
 ### Interacción por años y detalle mensual
 
 El informe inmediato se amplía para mostrar simultáneamente velocidad media, frecuencia cardiaca media, eficiencia velocidad/pulso y efecto aeróbico, eliminando el selector de rendimiento. La leyenda permite activar o desactivar años mediante un clic y conserva un color estable para cada año. Los puntos muestran mes y valor al pasar el cursor, y se añade una tabla con el detalle mensual exacto.
+
+### Control global de años
+
+El gráfico de zonas de frecuencia cardiaca media se integra en el informe inmediato antes de la tabla mensual y pasa a responder al mismo control pulsable de años que el resto de gráficos. En el informe detallado se elimina el selector de periodos y se implanta el mismo control global para VO2 máximo, carga, HRV, frecuencia cardiaca en reposo, relación carga-rendimiento y barras de zonas. Los colores permanecen asociados a cada año y se impide ocultarlos todos simultáneamente.

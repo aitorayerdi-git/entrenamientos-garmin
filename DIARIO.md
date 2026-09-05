@@ -83,3 +83,7 @@ El informe inmediato se amplía para mostrar simultáneamente velocidad media, f
 ### Control global de años
 
 El gráfico de zonas de frecuencia cardiaca media se integra en el informe inmediato antes de la tabla mensual y pasa a responder al mismo control pulsable de años que el resto de gráficos. En el informe detallado se elimina el selector de periodos y se implanta el mismo control global para VO2 máximo, carga, HRV, frecuencia cardiaca en reposo, relación carga-rendimiento y barras de zonas. Los colores permanecen asociados a cada año y se impide ocultarlos todos simultáneamente.
+
+### Corrección del efecto aeróbico
+
+El gráfico aparecía vacío porque la cabecera `TE aeróbico` estaba mal codificada en el CSV. Se adapta el importador para reconocer la variante exportada por Garmin. Se validan 1.195 valores de 1.220 actividades, con rango de 0,0 a 5,0.

@@ -27,13 +27,14 @@ rows=[next(csv.reader([r[0]])) if len(r)==1 else r for r in outer[1:] if r]
 idx={}
 for i,n in enumerate(head):idx.setdefault(clean(n),i)
 def get(r,n):return clean(r[idx[n]]) if n in idx and idx[n]<len(r) else ''
+TE_FIELD=next((name for name in idx if name.startswith('TE aer')), 'TE aeróbico')
 data=[]
 for r in rows:
  try:d=datetime.fromisoformat(get(r,'Fecha'))
  except:continue
  duration=secs(get(r,'Tiempo en movimiento')) or secs(get(r,'Tiempo'));dist=num(get(r,'Distancia'));hr=num(get(r,'Frecuencia cardiaca media'))
  speed=dist/(duration/3600) if dist and duration else None
- data.append({'y':d.year,'m':d.month,'type':get(r,'Tipo de actividad'),'family':family(get(r,'Tipo de actividad')),'hours':duration/3600 if duration else 0,'distance':dist or 0,'ascent':num(get(r,'Ascenso total')) or 0,'hr':hr,'speed':speed,'te':num(get(r,'TE aeróbico'))})
+ data.append({'y':d.year,'m':d.month,'type':get(r,'Tipo de actividad'),'family':family(get(r,'Tipo de actividad')),'hours':duration/3600 if duration else 0,'distance':dist or 0,'ascent':num(get(r,'Ascenso total')) or 0,'hr':hr,'speed':speed,'te':num(get(r,TE_FIELD))})
 stamp=datetime.fromtimestamp(SOURCE.stat().st_mtime).strftime('%d/%m/%Y %H:%M')
 payload=json.dumps(data,ensure_ascii=False,separators=(',',':'))
 html=r'''<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe inmediato Garmin</title><style>

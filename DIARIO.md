@@ -129,3 +129,37 @@ El gráfico aparecía vacío porque la cabecera `TE aeróbico` estaba mal codifi
 3. Sustituir los datos ficticios por VO2, HRV, sueño, pulso en reposo, carga y zonas reales.
 4. Crear el actualizador del informe detallado.
 5. Valorar la publicación automática en GitHub tras cada actualización.
+## Recapitulación de la sesión — 7 de septiembre de 2026
+
+### Trabajo guardado
+
+- La portada muestra por separado la última actualización del informe inmediato y del detallado.
+- El informe inmediato conserva un único selector de actividad; la selección de años ya no se reinicia al cambiar de actividad.
+- Horas, distancia, sesiones y desnivel se muestran simultáneamente.
+- Se añadieron actividades acumuladas y horas acumuladas dentro de cada año.
+- La tabla mensual se sustituyó por un detalle anual al final del informe.
+- Todos los gráficos inmediatos incluyen una referencia respecto al año visible más reciente: promedio discontinuo y rango sombreado de los dos años anteriores.
+- Los gráficos inmediatos se validaron con Edge y contienen SVG renderizados.
+- Se incorporó la exportación completa Garmin ubicada en `datos garmin/completo`.
+- Se creó `generar_detallado.py` y se generó `informe-detallado.html` con VO₂ máximo, carga crónica, frecuencia cardiaca en reposo y sueño reales.
+- La portada enlaza ahora al informe detallado real.
+
+### Limpieza aplicada al informe detallado
+
+- Mediana mensual para reducir la influencia de extremos.
+- VO₂ máximo restringido a carrera y al intervalo fisiológico 20–85 ml/kg/min.
+- Frecuencia cardiaca en reposo restringida a 30–100 ppm.
+- Sueños válidos entre 2 y 16 horas.
+- Consolidación por fecha de registros duplicados de carga procedentes de varios dispositivos.
+- Los meses sin medición se dejan como huecos y no se convierten en ceros.
+- El gráfico carga–VO₂ utiliza escalas automáticas.
+
+### Pendiente para la próxima sesión
+
+1. Terminar el lector tolerante de los FIT internos. Hay más de 18.000 archivos y al menos uno presenta CRC inconsistente.
+2. Reactivar el bucle FIT de `generar_detallado.py`, actualmente desactivado de forma intencionada con `for on in []`.
+3. Calcular y validar el tiempo real anual en zonas con los límites personales exportados: 90, 106, 126, 142 y 161 ppm.
+4. Revisar visualmente la cobertura por métrica y añadir avisos claros en periodos sin datos.
+5. HRV no aparece en esta exportación; mantenerla como no disponible salvo que se aporte otra fuente.
+6. Añadir `fitdecode` a la documentación o dependencias si se conserva el procesamiento FIT.
+7. No se ha hecho commit ni push. Revisar primero la muestra con el usuario.
